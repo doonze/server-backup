@@ -38,8 +38,13 @@ items; Restic cannot recreate those.
 ### Include
 
 - `/etc`, `/home`, and `/root`.
-- Reviewed custom paths under `/opt`; never include all of `/opt` by default.
-- Selected `/var` paths and generated database/app backup artifacts.
+- All of `/opt`; Justin reports it is not a major space consumer.
+- Most of `/var`, with explicit exclusions for Emby/Plex state and metadata,
+  volatile/cache paths, and live MariaDB files. Include logical DB exports.
+- The reported ~44 GB qcow2 VM disk is approved in principle for inclusion;
+  verify its path, backing chain, and a safe snapshot/offline method first.
+- Foundry under `/home` remains in scope; its live-data consistency is not yet
+  assessed.
 - Minecraft `/home/justin/Minecraft/backup` update checkpoints and the live
   `/home/justin/Minecraft/running` tree as best-effort, without pausing it.
 
@@ -48,8 +53,10 @@ items; Restic cannot recreate those.
 - `/nfs` and `/smb` at all costs; these are NAS routes.
 - Symlink targets: preserve links only, never traverse them.
 - `/lib` from file restoration; rebuild packaged OS libraries via APT.
-- Large app metadata/covers and app state already represented by app exports.
-- Caches, runtime/lock/temp data, and unreviewed database files.
+- Emby/Plex data and large media metadata/covers; app-generated backups remain
+  the recovery source for those services.
+- Caches, runtime/lock/temp data, and the live MariaDB datadir; use verified
+  logical dumps instead.
 - Never use `/` as a Restic source. Use explicit paths and mount-boundary
   safeguards; verify `/nfs` and `/smb` are never traversed.
 
@@ -88,9 +95,10 @@ and include the current snapshot in the Restic run.
 ## Readiness gates
 
 1. Inventory the MariaDB databases and all app-export paths.
-2. Review exact `/opt` and `/var` include/exclude paths without broad scans.
-3. Define local DB-dump staging, secret handling, and package inventory format.
-4. Confirm NAS mount validation and repository permissions.
-5. Initialize the encrypted repository and run the first backup.
-6. Check the repository and test restore files/database data to non-production.
-7. Only then consider deleting obsolete backup sets or relying on Restic alone.
+2. Confirm `/var` exclusions and exact Emby/Plex paths without broad scans.
+3. Locate the qcow2 image/backing chain and choose offline or snapshot capture.
+4. Define local DB-dump staging, secret handling, and package inventory format.
+5. Confirm NAS mount validation and repository permissions.
+6. Initialize the encrypted repository and run the first backup.
+7. Check the repository and test restore files/database data to non-production.
+8. Only then consider deleting obsolete backup sets or relying on Restic alone.

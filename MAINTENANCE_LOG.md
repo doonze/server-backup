@@ -16,3 +16,14 @@
   installation, split into nine TSV chunks, with manual and held package lists.
 - Existing Deja Dup and LuckyBackup data were not deleted. No backup payload was
   copied or restored during project setup.
+
+## 2026-10-04 — Storage-scope correction
+
+- Justin corrected the capacity assessment: `/var` is about 63% of server space,
+  mostly Emby/Plex; `/opt` is not large. Plan to include all `/opt` and most of
+  `/var`, excluding Emby/Plex data/metadata and volatile paths.
+- Foundry under `/home` is reported at about 20% of server space; keep home in
+  scope.
+- Justin wants to include a roughly 44 GB qcow2 VM image. Capture method remains
+  open pending path/backing-chain discovery and a consistent offline/snapshot
+  strategy; Restic does not quiesce a running VM.

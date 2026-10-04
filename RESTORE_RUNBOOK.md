@@ -31,19 +31,23 @@ This is a file-level rebuild, not a bootable disk image.
 4. Retrieve the Restic password from the external password manager; never paste
    it into chat or store it in this Git project.
 5. Inspect snapshots and restore first to a separate recovery directory for
-   validation. Restore `/etc`, `/home`, `/root`, and only approved `/opt`/`/var`
-   paths; never restore `/nfs` or `/smb`.
+   validation. Restore `/etc`, `/home`, `/root`, all `/opt`, and approved `/var`
+   paths; never restore `/nfs` or `/smb`. Do not restore Emby/Plex metadata or
+   raw live MariaDB files.
 6. Reinstall recorded packages and vendor applications from supported sources;
    do not blindly overlay old `/lib` binaries onto a different Debian release.
 7. Restore MariaDB schema/data according to `DATABASE_BACKUP_POLICY.md`, then
    import app-generated backups and selected Plex configuration.
-8. Reboot only after reviewing boot, network, permissions, and service state;
-   verify access, databases, services, Minecraft, and NAS mounts.
+8. Restore the VM image only after verifying its qcow2 backing chain and that
+   the captured image is consistent; restore its VM definition before starting.
+9. Reboot only after reviewing boot, network, permissions, and service state;
+   verify access, databases, services, Minecraft, VM, and NAS mounts.
 
 ## Not yet proven
 
 - RAID recreation details and bootloader/UEFI recovery.
 - Restic restore of ownership, ACLs, xattrs, and selected system paths.
 - MariaDB dump/restore consistency and app-specific restore order.
+- VM qcow2 consistency, backing-chain capture, and restored VM definition.
 - NAS availability during a fresh install and password recovery.
 - Downtime and total recovery duration.

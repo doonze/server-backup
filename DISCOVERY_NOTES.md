@@ -36,8 +36,12 @@
 ### Scope confirmed by Justin
 
 - Include all home directories and `/etc`.
-- Select `/opt` and `/var`; do not scan all of `/opt` by default. Large media
-  metadata and cover-art trees are unwanted.
+- Storage-scope correction from Justin: `/var` uses about 63% of server space,
+  mostly Emby/Plex; `/opt` is not a major space consumer. Include all `/opt` and
+  most of `/var`, excluding Emby/Plex data/metadata and volatile paths.
+- Foundry in a home directory uses about 20% of space; home directories remain
+  in scope. One ~44 GB qcow2 VM image is a candidate for backup; confirm exact
+  path/backing chain and safe snapshot/offline capture before scanning it.
 - Omit `/lib` from file restoration; use package inventory/reinstallation.
 - Hard-exclude `/nfs` and `/smb`; never traverse symlink targets. Restic should
   store symlinks as links only.
@@ -50,3 +54,12 @@
   by default, with `resource-monitor` known schema-only. Full DB inventory pending.
 - Recovery target: reinstall then-current Debian stable on the existing RAID,
   install Restic, and restore files. No disk-image/PXE requirement now.
+
+### VM image note
+
+A qcow2 file is a virtual disk image, not an ordinary static document. Restic
+can store it as a file and deduplicate changed chunks across snapshots, but it
+does not coordinate with QEMU or guarantee a consistent guest filesystem while
+the VM is writing. Capture it with the VM shut down or from a verified
+QEMU/libvirt snapshot; confirm all backing-chain files and the VM definition.
+The exact image path, allocated size, backing chain, and VM state remain unknown.
