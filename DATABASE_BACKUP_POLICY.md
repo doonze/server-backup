@@ -1,14 +1,14 @@
 # Database Backup Policy
 
-**Status:** Discovery required; no MariaDB dumps currently exist.
+**Status:** Inventory captured; dumps, orchestration, and restore test are still pending.
 
 ## Policy
 
 - Create a schema dump for every MariaDB database.
 - Include table data by default.
 - Keep an explicit, reviewed exception list for schema-only databases.
-- Known exception: `resource-monitor` data can be rebuilt; preserve its schema,
-  omit its rows. Verify the actual database name during inventory.
+- Known exception: `resource_monitor` data can be rebuilt; preserve its schema,
+  omit its rows.
 - Do not copy `/var/lib/mysql` live as a substitute for a logical/consistent
   database backup.
 - Include routines, events, and triggers where present; record database names,
@@ -16,18 +16,40 @@
 - The orchestrator must stop if a required dump fails and must not tell Restic to
   record a successful run with a missing or empty required dump.
 
-## Pending inventory
+## Discovered inventory (2026-10-04)
 
-For each database, record:
+MariaDB is 10.11.18. The following application databases were discovered;
+data is included by default except for `resource_monitor`.
 
-| Database | Schema | Data | Restore notes |
-| --- | --- | --- | --- |
-| resource-monitor | Yes | No | Rebuildable rows |
-| Other databases | Yes | Yes by default | Review individually |
+| Database | Schema | Data |
+| --- | --- | --- |
+| djangohome | Yes | Yes |
+| fileindex | Yes | Yes |
+| guacamole | Yes | Yes |
+| home_login | Yes | Yes |
+| media_reencode | Yes | Yes |
+| nextcloud | Yes | Yes |
+| phpbb | Yes | Yes |
+| phpmyadmin | Yes | Yes |
+| postfixadmin | Yes | Yes |
+| rainloop | Yes | Yes |
+| resource_monitor | Yes | No |
+| servermail | Yes | Yes |
+| servmon | Yes | Yes |
+| vmdashboard | Yes | Yes |
 
-The current database list, application owners, sizes, and schema-only exceptions
-are not yet established. Plex's library database backup is a separate app-level
-artifact; confirm its path and whether MariaDB also contains Plex-related data.
+`information_schema`, `performance_schema`, and `sys` are MariaDB system
+schemas, not application databases. Do not dump their generated contents. Do
+not restore the internal `mysql` system tables across MariaDB versions; export
+portable account/grant definitions separately with `mariadb-dump --system=users`.
+
+Engine inventory found InnoDB application tables except MyISAM tables in
+`postfixadmin` and `servmon`; `resource_monitor` also has MEMORY tables, whose
+data is intentionally excluded. Use a transaction-consistent dump for InnoDB
+schemas and a brief table read-lock for the two databases containing MyISAM
+tables. This may briefly block writes to those databases and must be scheduled
+accordingly. Recheck engines before each dump so newly added nontransactional
+tables are not silently treated as InnoDB-only.
 
 ## Orchestrator requirements
 

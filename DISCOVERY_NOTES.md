@@ -39,19 +39,33 @@
 - Storage-scope correction from Justin: `/var` uses about 63% of server space,
   mostly Emby/Plex; `/opt` is not a major space consumer. Include all `/opt` and
   most of `/var`, excluding Emby/Plex data/metadata and volatile paths.
-- Foundry in a home directory uses about 20% of space; home directories remain
-  in scope. One ~44 GB qcow2 VM image is a candidate for backup; confirm exact
-  path/backing chain and safe snapshot/offline capture before scanning it.
+- Home directories remain in scope; Foundry is reported at about 20% of server
+  space. The `win10` VM is currently shut off. Its qcow2 image is
+  `/var/lib/libvirt/images/win10.qcow2`: 80 GiB virtual size, about 42 GiB
+  allocated (44.2 GB reported by `qemu-img`), no backing file reported, and no
+  symlink in its path components. Capture only while the VM is shut down.
 - Omit `/lib` from file restoration; use package inventory/reinstallation.
 - Hard-exclude `/nfs` and `/smb`; never traverse symlink targets. Restic should
   store symlinks as links only.
-- App-generated backups exist for Emby, Sonarr, Radarr, Lidarr, SABnzbd, and the
-  Plex database; exact paths still need verification.
+- Emby's MBBackup plugin config points to `/nfs/backups/apps/emby` with
+  retention 5. This is already on the NAS and must not be traversed as a source.
+- Sonarr backups are in `/var/lib/sonarr/Backups` (44.3 MB observed, including
+  current v4 manual/scheduled exports); they are covered by `/var`.
+- Plex dated database copies are in
+  `/var/lib/plexmediaserver/Library/Application Support/Plex Media Server/Plug-in Support/Databases`.
+  The latest observed library and blobs backups are dated 2026-10-04. Stage only
+  the latest dated copies; exclude the rest of the Plex tree.
+- Radarr, Lidarr, and SABnzbd backup exports are under the broad `/home`, `/opt`,
+  or `/var` sources unless they are on an excluded NAS path; exact paths remain
+  to confirm.
 - Minecraft lives under `/home/justin/Minecraft/running`; update-time recovery
   copies live in `/home/justin/Minecraft/backup`. Include both. A live-world
   snapshot is accepted as best-effort without pausing the server.
-- MariaDB: no current logical dumps. Dump schema for all databases; include data
-  by default, with `resource-monitor` known schema-only. Full DB inventory pending.
+- MariaDB 10.11.18 inventory found 14 application databases. Include schema and
+  data by default; `resource_monitor` is schema-only. Exclude generated system
+  schemas and export portable account/grant definitions separately. `postfixadmin`
+  and `servmon` contain MyISAM tables and need brief read locks for consistent
+  dumps; see `DATABASE_BACKUP_POLICY.md`.
 - Recovery target: reinstall then-current Debian stable on the existing RAID,
   install Restic, and restore files. No disk-image/PXE requirement now.
 
@@ -59,7 +73,9 @@
 
 A qcow2 file is a virtual disk image, not an ordinary static document. Restic
 can store it as a file and deduplicate changed chunks across snapshots, but it
-does not coordinate with QEMU or guarantee a consistent guest filesystem while
-the VM is writing. Capture it with the VM shut down or from a verified
-QEMU/libvirt snapshot; confirm all backing-chain files and the VM definition.
-The exact image path, allocated size, backing chain, and VM state remain unknown.
+does not coordinate with QEMU. The `win10` VM was shut off during inspection;
+its image is `/var/lib/libvirt/images/win10.qcow2`, with 80 GiB virtual size and
+about 42 GiB allocated. `qemu-img info` reported no backing file and no
+corruption. The file is not a symlink. The scheduled backup must fail closed if
+`win10` is running, so it never captures a changing disk. The VM's CD-ROM points
+to `/home/justin/Downloads/virtio-win-0.1.271.iso`, which is covered by `/home`.

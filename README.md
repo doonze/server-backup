@@ -12,8 +12,8 @@ RAID, install Restic, and restore selected files and service data.
 - Restic 0.14.0 is installed from Debian Bookworm.
 - The proposed encrypted repository is
   `/nfs/backups/debianr710-restic`; it is not initialized.
-- No Restic backup script or systemd timer exists yet.
-- Backup paths and the MariaDB policy still need inventory and review.
+- Restic source/exclusion files and backup script are prepared; systemd units are installed but disabled.
+- MariaDB and VM inventory are recorded. Repository initialization, secret escrow, MyISAM-lock approval, first backup, and restore checks remain pending.
 - The old Déjà Dup and LuckyBackup backups are retained until a Restic restore
   has been verified.
 

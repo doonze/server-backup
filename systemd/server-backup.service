@@ -1,0 +1,20 @@
+[Unit]
+Description=Create encrypted server backup with Restic
+Wants=network-online.target
+After=network-online.target remote-fs.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+UMask=0077
+LoadCredential=restic-password:/etc/restic/server-backup-password
+ExecStart=/home/justin/puppy_workspace/projects/active/server-backup/scripts/server-backup.sh
+TimeoutStartSec=infinity
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+NoNewPrivileges=yes
+ProtectHome=read-only
+ProtectSystem=full
+PrivateTmp=yes

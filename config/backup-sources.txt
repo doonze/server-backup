@@ -1,0 +1,6 @@
+# Explicit local backup roots; never use / as a source.
+/etc
+/home
+/root
+/opt
+/var

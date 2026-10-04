@@ -41,8 +41,9 @@ items; Restic cannot recreate those.
 - All of `/opt`; Justin reports it is not a major space consumer.
 - Most of `/var`, with explicit exclusions for Emby/Plex state and metadata,
   volatile/cache paths, and live MariaDB files. Include logical DB exports.
-- The reported ~44 GB qcow2 VM disk is approved in principle for inclusion;
-  verify its path, backing chain, and a safe snapshot/offline method first.
+- Include `/var/lib/libvirt/images/win10.qcow2` under `/var`: 80 GiB virtual,
+  about 42 GiB allocated, no backing file reported. Require `win10` to be shut
+  off; the orchestrator fails closed if it is running or image metadata changes.
 - Foundry under `/home` remains in scope; its live-data consistency is not yet
   assessed.
 - Minecraft `/home/justin/Minecraft/backup` update checkpoints and the live
@@ -57,22 +58,29 @@ items; Restic cannot recreate those.
   the recovery source for those services.
 - Caches, runtime/lock/temp data, and the live MariaDB datadir; use verified
   logical dumps instead.
-- Never use `/` as a Restic source. Use explicit paths and mount-boundary
-  safeguards; verify `/nfs` and `/smb` are never traversed.
+- Use explicit sources from `config/backup-sources.txt` (`/etc`, `/home`,
+  `/root`, `/opt`, `/var`), never `/`. Use `--one-file-system`, explicit
+  exclusions from `config/restic-excludes.txt`, and verify `/nfs` and `/smb` are
+  never traversed.
 
 ### App-specific recovery data
 
 Justin reports app-generated backups for Emby, Sonarr, Radarr, Lidarr, SABnzbd,
-and the Plex database. Locate and verify those artifacts before defining final
-Restic inputs. Select small Plex configuration files only if useful; omit large
-Plex metadata/covers.
+and the Plex database. Emby's MBBackup export is on `/nfs/backups/apps/emby`
+and is intentionally not used as a source. Sonarr exports are in
+`/var/lib/sonarr/Backups`. Stage the latest dated Plex library/blob DB copies
+from its database directory, then exclude the rest of `/var/lib/plexmediaserver`.
+Other app exports are captured by `/home`, `/opt`, or `/var` unless stored on
+an excluded NAS path. Do not include Plex metadata or cover art.
 
 ## Database policy
 
 See `DATABASE_BACKUP_POLICY.md`. Dump schema for every MariaDB database; include
-data by default. `resource-monitor` is a known schema-only exception. Inventory
-all databases and approve any further schema-only exceptions before scripting.
-No current MariaDB logical dumps exist.
+data by default. `resource_monitor` is the known schema-only exception. The current application
+DB inventory and MyISAM consistency requirements are recorded in
+`DATABASE_BACKUP_POLICY.md`; review the brief write-blocking read-lock window for
+`postfixadmin` and `servmon` before enabling the scheduled dump. No logical dumps
+exist yet.
 
 ## Package inventory
 

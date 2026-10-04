@@ -27,3 +27,23 @@
 - Justin wants to include a roughly 44 GB qcow2 VM image. Capture method remains
   open pending path/backing-chain discovery and a consistent offline/snapshot
   strategy; Restic does not quiesce a running VM.
+
+## 2026-10-04 — Backup implementation prepared
+
+- Read-only inventory confirmed the `win10` VM is shut off and its image is
+  `/var/lib/libvirt/images/win10.qcow2` (80 GiB virtual, about 42 GiB allocated,
+  no backing file reported). The script will fail closed if it is running.
+- MariaDB 10.11.18 has 14 application databases; `resource_monitor` is
+  schema-only. `postfixadmin` and `servmon` need table read-locks for consistent
+  non-InnoDB dumps; Justin's approval of the brief write-blocking window is
+  pending.
+- Verified the NAS mount source `192.168.0.116:/volume1/nfs/backups` with 4.9 TB
+  available. Emby's MBBackup export already resides on that NAS and is not a
+  Restic source. Latest dated Plex DB exports are staged separately by the
+  orchestrator; Sonarr exports are under `/var/lib/sonarr/Backups`.
+- Created explicit sources/exclusions, the orchestrator, and daily systemd unit
+  templates. Shell syntax and systemd unit verification pass. The units are
+  installed but disabled; no repository or snapshot has been created.
+- Generated a 64-character random Restic password in `/etc/restic/` (root:root,
+  mode 0600). Justin must save it in the external password manager before
+  repository initialization. The secret is not in Git or chat.

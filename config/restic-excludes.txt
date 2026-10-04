@@ -1,0 +1,37 @@
+# NAS routes: never traverse as sources or symlink targets.
+/nfs
+/smb
+
+# Large Emby/Plex state is excluded; selected Plex DB exports are staged
+# under /var/backups/server-backup/staging before Restic runs.
+/var/lib/emby
+/var/lib/plexmediaserver
+
+# MariaDB is backed up with logical dumps, not a live datadir copy.
+/var/lib/mysql
+/var/lib/dpkg
+
+# Re-creatable volatile/cache paths from the prior root backup profile.
+/var/cache
+/var/tmp
+/var/lock
+/var/run
+/var/spool
+
+# Cover art and browser/build caches; keep application configs and backups.
+/var/lib/sonarr/MediaCover
+/var/lib/lidarr/MediaCover
+/home/*/.config/*/MediaCover
+/home/*/.cache
+/home/*/.local/share/Trash
+/home/*/.config/chromium
+/home/*/.mozilla
+/home/*/.npm
+/home/*/.nvm
+/root/.cache
+/root/.local/share/Trash
+/root/.config/chromium
+/root/.mozilla
+/root/.npm
+/root/.nvm
+/root/Downloads

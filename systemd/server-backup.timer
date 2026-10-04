@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily encrypted server backup
+
+[Timer]
+OnCalendar=*-*-* 02:30:00
+RandomizedDelaySec=30m
+Persistent=true
+Unit=server-backup.service
+
+[Install]
+WantedBy=timers.target
