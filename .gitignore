@@ -1,0 +1,19 @@
+# Secrets and credentials — never commit
+.env
+.env.*
+*restic-password*
+*restic-credential*
+*.key
+*.pem
+*.gpg
+
+# Raw database exports belong only in restricted staging and Restic
+*.sql
+*.sql.gz
+*.dump
+
+# Local backup payloads/caches
+restic-repo/
+backup-payloads/
+.cache/
+*.tmp
