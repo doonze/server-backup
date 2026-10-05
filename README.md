@@ -1,6 +1,6 @@
 # Server Backup
 
-**Status:** Active — design and implementation
+**Status:** Active — first snapshot and selected restore tests validated
 
 Plan, implement, and validate file-level backups and a recovery path for
 `mail.doonze.net`, the Dell PowerEdge R710 running Debian. The target recovery
@@ -10,12 +10,21 @@ RAID, install Restic, and restore selected files and service data.
 ## Current state
 
 - Restic 0.14.0 is installed from Debian Bookworm.
-- The proposed encrypted repository is
-  `/nfs/backups/debianr710-restic`; it is not initialized.
-- Restic source/exclusion files and backup script are prepared; systemd units are installed but disabled.
-- MariaDB and VM inventory are recorded. Repository initialization, secret escrow, MyISAM-lock approval, first backup, and restore checks remain pending.
-- The old Déjà Dup and LuckyBackup backups are retained until a Restic restore
-  has been verified.
+- The encrypted repository `/nfs/backups/debianr710-restic` is initialized.
+  First snapshot: `29ab3833` (2026-10-04); `restic check` found no errors.
+- The first snapshot processed 171.946 GiB and stored 95.814 GiB after Restic
+  deduplication and compression.
+- Selected restores passed: package inventory and SQL dump files restored;
+  `vmdashboard` imported into a temporary schema and passed `mariadb-check`;
+  the restored qcow2 passed `qemu-img check`. A full host rebuild is not tested.
+- The systemd service is installed; the daily timer remains disabled. Retention,
+  pruning, and failure notifications are still pending.
+- The old Déjà Dup set `/nfs/backups/debianr710` was removed after restore
+  validation. The historical LuckyBackup set remains untouched.
+- Future runs publish package inventory at one stable latest-only path rather
+  than a timestamped path per run.
+- Planned UI: Backrest at `https://server.doonze.net/backrest`, behind Apache
+  with password authentication scoped to that path; not installed yet.
 
 ## Project documents
 

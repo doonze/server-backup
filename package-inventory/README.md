@@ -14,5 +14,6 @@ chunk with 199 records. Each chunk has a header row.
 
 This is an inventory, not a package installation script. On a rebuild, compare
 versions and availability with the Debian stable release then in use. Refresh
-the project snapshot after APT package changes; the future backup orchestrator
-must generate a current inventory for every Restic run as well.
+the project snapshot after APT package changes; the backup orchestrator publishes a fresh inventory for every Restic run at
+`/var/backups/server-backup/staging/latest-package-inventory`, replacing the
+prior runtime copy rather than creating timestamped inventory paths.

@@ -1,6 +1,6 @@
 # Backup Plan
 
-**Status:** Draft; no Restic repository or timer yet.
+**Status:** First Restic snapshot and selected restore tests passed; timer and retention policy remain pending.
 
 ## Why
 
@@ -21,7 +21,7 @@ items; Restic cannot recreate those.
 ## Approved design decisions
 
 - Use Restic with a new repository at `/nfs/backups/debianr710-restic`.
-- Restic is installed as Debian package 0.14.0; repository is not initialized.
+- Restic 0.14.0 is installed; encrypted repository `/nfs/backups/debianr710-restic` is initialized with first snapshot `29ab3833`.
 - Encryption is mandatory. Store the password in Justin's password manager and
   provide automation a root-only credential. Never put it in Git or chat.
 - Use repository format 2 and compression `auto` (verify compatibility before
@@ -30,8 +30,10 @@ items; Restic cannot recreate those.
   Backups application.
 - Each run should verify the NAS mount, create database exports and package
   inventory, run Restic over explicit paths, and report failure clearly.
-- Keep old Déjà Dup/Duplicity and LuckyBackup data until Restic restore tests
-  succeed.
+- Keep legacy backup sets until Restic restore tests succeed. After successful
+  repository, file, database, and qcow2 checks, the Déjà Dup set
+  `/nfs/backups/debianr710` was removed at Justin's request; the separate
+  LuckyBackup set remains.
 
 ## Source scope
 
@@ -79,24 +81,30 @@ See `DATABASE_BACKUP_POLICY.md`. Dump schema for every MariaDB database; include
 data by default. `resource_monitor` is the known schema-only exception. The current application
 DB inventory and MyISAM consistency requirements are recorded in
 `DATABASE_BACKUP_POLICY.md`; review the brief write-blocking read-lock window for
-`postfixadmin` and `servmon` before enabling the scheduled dump. No logical dumps
-exist yet.
+`postfixadmin` and `servmon` before enabling the scheduled dump. Justin approved
+those brief locks; they were used in the first successful dump of all 14
+application databases.
 
 ## Package inventory
 
 See `PACKAGE_INVENTORY.md`. Capture every installed package, version, and
-architecture, plus manual/held package state. Refresh after APT package changes
-and include the current snapshot in the Restic run.
+architecture, plus manual/held package state. The orchestrator publishes one
+stable latest inventory at `/var/backups/server-backup/staging/latest-package-inventory`
+for each Restic run; it does not create timestamped inventory paths.
 
 ## Orchestrator and timer requirements
 
 - Fail closed if `/nfs/backups` is not a mounted/writable NAS path.
-- Do not resolve/follow symlinks to NAS paths; never traverse `/nfs` or `/smb`.
+- Do not use `/nfs` or `/smb` as Restic sources; keep them excluded and do not
+  follow symlinks into them. The approved NFS destination may be inspected or
+  administered at a specific path when Justin requests it.
 - Do not overlap backup runs; log to the system journal and fail nonzero on any
   required DB dump or Restic error.
 - Keep database exports restricted and retain them until Restic confirms capture.
+  The first snapshot included all 14 database exports.
 - Define retention only after source size, NAS capacity, and restore needs are
-  measured. NAS was last observed with about 4.8 TB free; recheck before setup.
+  measured. About 4.9 TB was free during the first run; recheck before retention
+  or timer enablement.
 - Add notification/monitoring for missed or failed runs; a timer alone is not
   proof of a successful backup.
 
@@ -107,6 +115,11 @@ and include the current snapshot in the Restic run.
 3. Locate the qcow2 image/backing chain and choose offline or snapshot capture.
 4. Define local DB-dump staging, secret handling, and package inventory format.
 5. Confirm NAS mount validation and repository permissions.
-6. Initialize the encrypted repository and run the first backup.
-7. Check the repository and test restore files/database data to non-production.
-8. Only then consider deleting obsolete backup sets or relying on Restic alone.
+6. Initialize the encrypted repository and run the first backup. **Complete:**
+   snapshot `29ab3833` created.
+7. Check the repository and test restores to non-production. **Complete for
+   selected artifacts:** `restic check` passed; package and SQL dump files
+   restored; `vmdashboard` imported into a temporary schema and passed
+   `mariadb-check`; restored qcow2 passed `qemu-img check`.
+8. The Déjà Dup set was removed after those checks. Review the separate
+   LuckyBackup set before any deletion or relying on Restic alone.

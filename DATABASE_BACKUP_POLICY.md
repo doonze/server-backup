@@ -1,6 +1,6 @@
 # Database Backup Policy
 
-**Status:** Inventory captured; dumps, orchestration, and restore test are still pending.
+**Status:** First logical dumps completed; `vmdashboard` restored into an isolated temporary schema and passed table checks. Full multi-database recovery remains untested.
 
 ## Policy
 
@@ -59,3 +59,7 @@ tables are not silently treated as InnoDB-only.
 4. Include successful dumps in the same Restic snapshot as the package inventory.
 5. Keep dumps encrypted in Restic; do not commit raw SQL files to Git.
 6. Test restore into a non-production database before declaring readiness.
+   **Selected test passed:** the first `vmdashboard` dump was imported into a
+   temporary schema on 2026-10-04; three base tables passed `mariadb-check`,
+   then the temporary schema was dropped. This does not validate every database
+   or a cross-version Debian/MariaDB migration.

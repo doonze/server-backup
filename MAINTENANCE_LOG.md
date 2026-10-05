@@ -47,3 +47,27 @@
 - Generated a 64-character random Restic password in `/etc/restic/` (root:root,
   mode 0600). Justin must save it in the external password manager before
   repository initialization. The secret is not in Git or chat.
+
+## 2026-10-04 — First snapshot and restore validation
+
+- Justin confirmed the root-only Restic password is saved in his external
+  password manager. The repository at `/nfs/backups/debianr710-restic` was
+  initialized and snapshot `29ab3833` completed successfully.
+- First-run result: 713,313 files and 171.946 GiB processed; Restic reported
+  128.493 GiB added and 95.814 GiB stored after compression. `restic check`
+  found no errors.
+- The script dumped all 14 application databases, used the approved brief
+  MyISAM read-locks for `postfixadmin` and `servmon`, and kept
+  `resource_monitor` schema-only.
+- Selected restore tests passed: a package inventory chunk and database dump
+  files restored and validated; `vmdashboard` imported into a temporary schema
+  with three base tables, all passing `mariadb-check`; the restored `win10.qcow2`
+  passed `qemu-img check` with no errors. Temporary restore files and the test
+  database were removed.
+- At Justin's request, removed the 137G Déjà Dup set
+  `/nfs/backups/debianr710` after the restore checks. The separate LuckyBackup
+  set remains.
+- The daily systemd timer remains disabled; retention/prune policy and external
+  failure notifications remain undecided. Backrest is planned at
+  `https://server.doonze.net/backrest` behind path-scoped Apache password auth,
+  as a UI only; systemd remains the planned scheduler.

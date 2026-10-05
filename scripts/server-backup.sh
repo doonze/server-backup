@@ -100,25 +100,41 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Generate a complete installed-package inventory plus supplemental APT state.
-raw_packages="$RUN_DIR/packages.raw.tsv"
+# Build this run's inventory, then publish it at one stable Restic path so
+# package files do not accumulate under a new run-specific directory each time.
+PACKAGE_NEXT_DIR="$RUN_DIR/package-inventory"
+PACKAGE_LATEST_DIR="$STAGING_ROOT/latest-package-inventory"
+PACKAGE_OLD_DIR="$STAGING_ROOT/.latest-package-inventory-old-$run_id"
+install -d -o root -g root -m 0700 "$PACKAGE_NEXT_DIR"
+raw_packages="$PACKAGE_NEXT_DIR/packages.raw.tsv"
 dpkg-query -W -f='${db:Status-Abbrev}\t${binary:Package}\t${Version}\t${Architecture}\n' \
     | awk -F '\t' '$1 ~ /^ii/ {print $2 "\t" $3 "\t" $4}' \
     | LC_ALL=C sort > "$raw_packages"
 package_count=$(wc -l < "$raw_packages")
 (( package_count > 0 )) || die 'installed package inventory is empty'
-split -l 449 -d -a 2 "$raw_packages" "$RUN_DIR/package-part-"
-for chunk in "$RUN_DIR"/package-part-*; do
+split -l 449 -d -a 2 "$raw_packages" "$PACKAGE_NEXT_DIR/package-part-"
+for chunk in "$PACKAGE_NEXT_DIR"/package-part-*; do
     [[ -f "$chunk" ]] || continue
     suffix=${chunk##*-}
-    output="$RUN_DIR/installed-packages-part-${suffix}.tsv"
+    output="$PACKAGE_NEXT_DIR/installed-packages-part-${suffix}.tsv"
     { printf 'Package\tVersion\tArchitecture\n'; cat "$chunk"; } > "$output"
     rm -f -- "$chunk"
 done
 rm -f -- "$raw_packages"
-{ printf '# Manual APT packages\n'; apt-mark showmanual | LC_ALL=C sort; } > "$RUN_DIR/manual-packages.txt"
-{ printf '# Held APT packages\n'; apt-mark showhold | LC_ALL=C sort; } > "$RUN_DIR/held-packages.txt"
-log "generated package inventory: $package_count installed packages"
+{ printf '# Manual APT packages\n'; apt-mark showmanual | LC_ALL=C sort; } > "$PACKAGE_NEXT_DIR/manual-packages.txt"
+{ printf '# Held APT packages\n'; apt-mark showhold | LC_ALL=C sort; } > "$PACKAGE_NEXT_DIR/held-packages.txt"
+if [[ -e "$PACKAGE_LATEST_DIR" ]]; then
+    mv -- "$PACKAGE_LATEST_DIR" "$PACKAGE_OLD_DIR"
+fi
+if mv -- "$PACKAGE_NEXT_DIR" "$PACKAGE_LATEST_DIR"; then
+    [[ ! -e "$PACKAGE_OLD_DIR" ]] || rm -rf -- "$PACKAGE_OLD_DIR"
+else
+    if [[ -e "$PACKAGE_OLD_DIR" && ! -e "$PACKAGE_LATEST_DIR" ]]; then
+        mv -- "$PACKAGE_OLD_DIR" "$PACKAGE_LATEST_DIR"
+    fi
+    die 'could not publish the latest package inventory'
+fi
+log "generated package inventory: $package_count installed packages at $PACKAGE_LATEST_DIR"
 
 # Dump every non-system application schema/data by default. resource_monitor is
 # schema-only. Non-InnoDB data uses table read-locks for consistency.

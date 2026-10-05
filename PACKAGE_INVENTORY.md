@@ -16,12 +16,14 @@ rebuild practical.
   inventory file becomes unwieldy.
 - Record capture date and Debian release. Do not include secrets or repository
   credentials. `/etc/apt` is backed up separately after source files are reviewed.
-- Keep the newest dated inventory in this project; older snapshots may be
-  retained when useful for change history.
+- Keep one current project baseline; do not accumulate separately dated
+  inventory exports. Restic's ordinary retained snapshots may still contain
+  historical system states as part of the complete backup.
 
 ## Baseline status
 
 The 2026-10-04 post-Restic-install baseline is captured in
 `package-inventory/`: 3,791 installed package records plus manual and held
-package lists. The runtime inventory staging path for the future orchestrator
-is still TBD.
+package lists. Future runs overwrite the stable runtime inventory at
+`/var/backups/server-backup/staging/latest-package-inventory`; no new
+run-specific package-inventory directories are created.

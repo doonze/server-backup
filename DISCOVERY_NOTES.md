@@ -9,8 +9,11 @@
 - Restic 0.14.0-1+b5 installed from Debian Bookworm. The install added only
   Restic; no packages were upgraded or removed.
 - Restic compression `auto` is available with repository format 2. Restic
-  encryption is mandatory; repository/password handling remains to be completed.
-- NAS repository path approved: `/nfs/backups/debianr710-restic`; not initialized.
+  encryption is mandatory. The password is stored root-only on the server and
+  Justin confirms it is saved in his external password manager; no secret is
+  recorded here.
+- NAS repository path: `/nfs/backups/debianr710-restic`; initialized on
+  2026-10-04, first snapshot `29ab3833`.
 - `/nfs/backups` is an autofs-backed NFS mount. NAS had about 4.8 TB free on the
   last check; recheck before the initial backup. Never traverse `/nfs` or `/smb`.
 
@@ -24,7 +27,9 @@
 - Déjà Dup's `last-backup` was 2026-05-07; its `last-run` was 2026-10-04. The
   latest visible Duplicity archive ended 2026-05-07. An October status log scan
   did not prove a new backup completed. Déjà Dup was stopped/disabled by Justin.
-- Existing Duplicity data is retained until Restic restore verification.
+- At discovery, existing Duplicity data was retained pending Restic restore
+  verification. After selected restore tests passed on 2026-10-04, Justin asked
+  to remove `/nfs/backups/debianr710`; that set was subsequently deleted.
 
 ### LuckyBackup
 
@@ -45,8 +50,9 @@
   allocated (44.2 GB reported by `qemu-img`), no backing file reported, and no
   symlink in its path components. Capture only while the VM is shut down.
 - Omit `/lib` from file restoration; use package inventory/reinstallation.
-- Hard-exclude `/nfs` and `/smb`; never traverse symlink targets. Restic should
-  store symlinks as links only.
+- Exclude `/nfs` and `/smb` as Restic sources and never follow symlinks into
+  those paths. Targeted NAS inspection/administration is allowed when Justin
+  requests it. Restic should store symlinks as links only.
 - Emby's MBBackup plugin config points to `/nfs/backups/apps/emby` with
   retention 5. This is already on the NAS and must not be traversed as a source.
 - Sonarr backups are in `/var/lib/sonarr/Backups` (44.3 MB observed, including
@@ -79,3 +85,21 @@ about 42 GiB allocated. `qemu-img info` reported no backing file and no
 corruption. The file is not a symlink. The scheduled backup must fail closed if
 `win10` is running, so it never captures a changing disk. The VM's CD-ROM points
 to `/home/justin/Downloads/virtio-win-0.1.271.iso`, which is covered by `/home`.
+
+## 2026-10-04 — First snapshot and selected restore checks
+
+- First snapshot `29ab3833`: 713,313 files, 171.946 GiB processed; Restic
+  reported 128.493 GiB added to the repository and 95.814 GiB stored after
+  compression. `restic check` reported no errors.
+- A package inventory chunk and full/schema-only SQL dumps restored; the dump
+  archives passed `gzip -t`. A `vmdashboard` restore into a temporary schema
+  produced three base tables and passed `mariadb-check`; the scratch schema was
+  dropped.
+- The restored `win10.qcow2` passed `qemu-img check` (80 GiB virtual capacity,
+  about 44.2 GB allocated); its temporary NAS restore copy was removed.
+- Removed `/nfs/backups/debianr710` after these checks at Justin's request.
+  The separate `/nfs/backups/R710_server_backup` LuckyBackup set remains.
+- Future package inventories use one stable latest-only runtime path;
+  Restic's ordinary backup snapshots still retain point-in-time state.
+- Planned UI endpoint: `https://server.doonze.net/backrest`, with Apache auth
+  scoped only to `/backrest`; Backrest scheduling is not intended.

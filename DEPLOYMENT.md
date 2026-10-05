@@ -1,19 +1,22 @@
 # Restic Deployment and Operations
 
-**Status:** Script/configuration prepared and units installed but disabled; repository is not initialized.
+**Status:** Repository initialized; first snapshot and selected restore tests passed. Service is installed; timer remains disabled pending retention and operations approval.
 
 ## Scope
 
 - Sources: `/etc`, `/home`, `/root`, `/opt`, and `/var`; never source `/`.
-- `--one-file-system` is used. The NAS routes `/nfs` and `/smb` are explicitly
-  excluded, and Restic stores symlinks as links rather than following targets.
+- `--one-file-system` is used. `/nfs` and `/smb` are excluded as Restic
+  sources, and symlinks into them are not followed. `/nfs/backups` is the
+  approved repository destination; specific NAS paths may be administered when
+  Justin requests it.
 - Exclusions are in `config/restic-excludes.txt`: Emby/Plex state, raw MariaDB
   files, caches, transient paths, package-manager database, cover art, and
   browser/build caches. The libvirt image is intentionally not excluded.
-- Stage fresh package and SQL exports in root-only
-  `/var/backups/server-backup/staging`; this is under `/var` and therefore part
-  of the same Restic snapshot. On success, the run's staging directory is
-  removed; on failure it is retained for diagnosis.
+- Stage SQL exports in a root-only per-run directory under
+  `/var/backups/server-backup/staging`; remove it after successful capture and
+  retain it on failure for diagnosis. Publish package records separately at
+  the stable `staging/latest-package-inventory` path, replacing the prior
+  runtime copy each run.
 - Emby MBBackup already writes to `/nfs/backups/apps/emby`. That NAS path is not
   a source. The latest dated Plex library and blob database exports are copied
   into the local staging directory; the rest of Plex state is excluded.
@@ -43,21 +46,25 @@
    script reads the password through a systemd credential when run as a service.
 3. Confirm `/nfs/backups` is the expected writable NFS mount. The script checks
    the filesystem type and performs a temporary write probe before Restic runs.
-4. Initialize the new encrypted format-2 repository:
-   `sudo scripts/server-backup.sh --init`
-5. Run one manual backup and inspect the journal/output. Run `restic check`,
-   then restore representative files, a database, and the VM image to a
-   non-production location before enabling the timer.
-6. The service and timer are already installed and systemd has reloaded them.
-   Enable the timer only after the first successful backup, restore checks, and
-   an approved retention policy.
+4. **Complete:** the encrypted format-2 repository was initialized at
+   `/nfs/backups/debianr710-restic`; snapshot `29ab3833` completed.
+5. **Complete for selected artifacts:** `restic check` found no errors; a
+   package-inventory file and SQL dump files restored successfully; `vmdashboard`
+   was imported into a temporary schema and passed `mariadb-check`; the restored
+   qcow2 passed `qemu-img check`.
+6. The service and timer are installed, but the timer is disabled. Define
+   retention, monitoring, and failure notifications before enabling it.
 
 ## Limits
 
 - The timer template is daily at 02:30 with a randomized delay. Retention/prune
   policy and external failure notifications remain unset.
-- Old Déjà Dup/Duplicity and LuckyBackup data must remain until Restic checks and
-  restore tests pass.
+- The Déjà Dup/Duplicity set `/nfs/backups/debianr710` was removed after the
+  selected restore checks passed. The separate LuckyBackup data remains until
+  Justin explicitly requests its removal after review.
+- Planned Backrest UI: `https://server.doonze.net/backrest`, proxied by Apache
+  with the SABnzbd password file applied only to `/backrest` and its subpaths.
+  Backrest scheduling remains unused; systemd is the sole planned scheduler.
 - A file backup cannot recreate RAID, partition tables, bootloader state, or
   guarantee consistency for live application files outside the scripted DB and
   shut-down-VM checks.

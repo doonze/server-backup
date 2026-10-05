@@ -1,6 +1,6 @@
 # Restore Runbook (Draft)
 
-**Status:** Planning only; not yet validated by a restore test.
+**Status:** Selected file, database, and VM-image restore tests passed on 2026-10-04; a full Debian rebuild and service recovery remain untested.
 
 ## Recovery objective
 
@@ -43,11 +43,22 @@ This is a file-level rebuild, not a bootable disk image.
 9. Reboot only after reviewing boot, network, permissions, and service state;
    verify access, databases, services, Minecraft, VM, and NAS mounts.
 
+## Validation record (2026-10-04)
+
+- Snapshot `29ab3833` passed `restic check` with no errors.
+- A package inventory chunk and SQL dump files restored to temporary storage;
+  both selected compressed dumps passed `gzip -t`.
+- The `vmdashboard` dump was imported into a temporary schema (three base tables);
+  `mariadb-check` passed, and the scratch schema was dropped afterward.
+- The VM image restored to a temporary NAS path. `qemu-img info` showed qcow2,
+  80 GiB virtual size, and no backing file; `qemu-img check` reported no errors.
+  The temporary restore copy was removed. The guest was not booted.
+
 ## Not yet proven
 
 - RAID recreation details and bootloader/UEFI recovery.
-- Restic restore of ownership, ACLs, xattrs, and selected system paths.
-- MariaDB dump/restore consistency and app-specific restore order.
-- VM qcow2 consistency, backing-chain capture, and restored VM definition.
+- Restic restore of ownership, ACLs, xattrs, and every selected system path.
+- Restore/import consistency for all MariaDB databases and app-specific order.
+- Guest OS boot, restored VM definition, and application-level VM health.
 - NAS availability during a fresh install and password recovery.
 - Downtime and total recovery duration.
