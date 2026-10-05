@@ -1,6 +1,6 @@
 # Restic Deployment and Operations
 
-**Status:** Repository initialized; first snapshot and selected restore tests passed. Service is installed; timer remains disabled pending retention and operations approval.
+**Status:** Daily 05:00 America/Chicago timer enabled with 7-daily/4-weekly/12-monthly retention and pruning. Alerting remains a TODO.
 
 ## Scope
 
@@ -52,14 +52,15 @@
    package-inventory file and SQL dump files restored successfully; `vmdashboard`
    was imported into a temporary schema and passed `mariadb-check`; the restored
    qcow2 passed `qemu-img check`.
-6. The service and timer are installed, but the timer is disabled. Define
-   retention, monitoring, and failure notifications before enabling it.
+6. **Complete:** systemd timer enabled for daily 05:00 America/Chicago. Each
+   successful backup applies the approved 7-daily/4-weekly/12-monthly policy and
+   prunes unreferenced data. Alerting remains a follow-up TODO.
 
 ## Limits
 
-- The timer is configured for daily 05:00 America/Chicago with no randomized
-  delay. It remains disabled until retention/prune is approved; alerting is a
-  follow-up TODO.
+- The timer is enabled for daily 05:00 America/Chicago with no randomized
+  delay. Retention is 7 daily, 4 weekly, 12 monthly; alerting is a follow-up
+  TODO.
 - The Déjà Dup/Duplicity set `/nfs/backups/debianr710` was removed after the
   selected restore checks passed. The separate LuckyBackup data remains until
   Justin explicitly requests its removal after review.

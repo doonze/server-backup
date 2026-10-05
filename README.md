@@ -17,8 +17,9 @@ RAID, install Restic, and restore selected files and service data.
 - Selected restores passed: package inventory and SQL dump files restored;
   `vmdashboard` imported into a temporary schema and passed `mariadb-check`;
   the restored qcow2 passed `qemu-img check`. A full host rebuild is not tested.
-- The timer is configured for daily 05:00 America/Chicago, but remains disabled
-  until retention is approved. Alerting is a TODO.
+- The timer is enabled for daily 05:00 America/Chicago. Each run applies
+  7-daily/4-weekly/12-monthly retention and prunes unreferenced data. Alerting
+  is a TODO.
 - The old Déjà Dup set `/nfs/backups/debianr710` was removed after restore
   validation. The historical LuckyBackup set remains untouched.
 - Future runs publish package inventory at one stable latest-only path rather

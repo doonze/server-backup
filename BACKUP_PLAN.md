@@ -1,6 +1,6 @@
 # Backup Plan
 
-**Status:** First Restic snapshot and selected restore tests passed; timer and retention policy remain pending.
+**Status:** Daily timer enabled for 05:00 America/Chicago. Each run keeps 7 daily, 4 weekly, and 12 monthly snapshots, then prunes. Alerting is a TODO; the updated stable inventory path awaits its first scheduled-run verification.
 
 ## Why
 
@@ -102,11 +102,12 @@ for each Restic run; it does not create timestamped inventory paths.
   required DB dump or Restic error.
 - Keep database exports restricted and retain them until Restic confirms capture.
   The first snapshot included all 14 database exports.
-- Define retention only after source size, NAS capacity, and restore needs are
-  measured. About 4.9 TB was free during the first run; recheck before retention
-  or timer enablement.
+- Retention approved: keep 7 daily, 4 weekly, and 12 monthly snapshots. The
+  orchestrator runs `restic forget` and `--prune` after each backup. A dry run
+  retained the existing snapshot `29ab3833`; about 4.9 TB was free at the last
+  NAS check.
 - Add notification/monitoring for missed or failed runs; a timer alone is not
-  proof of a successful backup.
+  proof of a successful backup. This remains a TODO.
 
 ## Readiness gates
 

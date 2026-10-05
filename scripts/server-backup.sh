@@ -199,5 +199,7 @@ done
 log 'starting Restic backup with explicit sources, exclusions, and one-filesystem boundary'
 restic --compression auto backup --one-file-system --exclude-file "$EXCLUDES_FILE" \
     --tag server-backup --tag mail.doonze.net "${sources[@]}"
-restic snapshots >/dev/null || die 'Restic snapshot verification failed'
-log 'Restic backup completed and repository authentication verified'
+log 'applying retention: keep 7 daily, 4 weekly, and 12 monthly snapshots; pruning unreferenced data'
+restic forget --keep-daily 7 --keep-weekly 4 --keep-monthly 12 --prune
+restic snapshots >/dev/null || die 'Restic snapshot verification failed after retention/prune'
+log 'Restic backup, retention, and repository authentication completed'

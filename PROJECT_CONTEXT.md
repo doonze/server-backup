@@ -55,14 +55,16 @@
 ## Tech Stack
 
 - **OS/package manager:** Debian + APT/dpkg.
-- **Backup:** Restic 0.14.0 installed; encrypted repository format 2 planned,
-  compression mode `auto`.
-- **Scheduling:** Daily systemd service/timer are installed but disabled; enable
-  only after a successful initial backup and approved retention policy.
+- **Backup:** Restic 0.14.0; encrypted format-2 repository initialized,
+  compression mode `auto`; first snapshot `29ab3833` verified.
+- **Scheduling:** Daily systemd timer enabled for 05:00 America/Chicago.
+  Each successful run applies 7-daily/4-weekly/12-monthly retention and prune;
+  alerting remains a TODO.
 - **Orchestration:** `scripts/server-backup.sh` performs mount/VM checks,
   database dumps, latest package inventory, Plex export staging, then Restic.
-  The first production snapshot and selected restore tests passed; the daily
-  timer is installed but disabled.
+  The first production snapshot and selected restore tests passed; the timer is
+  enabled. The new stable package-inventory path will be verified on its first
+  scheduled run.
 - **Storage:** NAS NFS via autofs; do not alter existing autofs behavior.
 - **Databases:** MariaDB 10.11.18; 14 application databases inventoried.
   Schema/data are backed up by default; `resource_monitor` is schema-only.

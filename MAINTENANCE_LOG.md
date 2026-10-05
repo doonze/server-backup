@@ -76,5 +76,14 @@
 
 - Justin chose daily at 05:00 America/Chicago with no randomized delay.
 - Updated the project and installed systemd timer; `systemd-analyze verify`
-  passed. The timer remains disabled until retention/pruning is approved.
-  Alerting is a follow-up TODO.
+  passed. The timer remained disabled pending retention approval; alerting was
+  marked as a follow-up TODO.
+
+## 2026-10-04 — Retention approved and timer enabled
+
+- Justin selected 7 daily, 4 weekly, and 12 monthly snapshots. Restic's dry run
+  showed the existing snapshot `29ab3833` would be kept.
+- Added `restic forget` with that policy and `--prune` after each successful
+  backup. Script syntax and systemd unit verification passed.
+- Enabled the daily timer. Next run: 2026-10-05 05:00 America/Chicago. Alerting
+  remains a TODO; the stable package-inventory path will be checked on that run.
