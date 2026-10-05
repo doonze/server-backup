@@ -71,3 +71,10 @@
   failure notifications remain undecided. Backrest is planned at
   `https://server.doonze.net/backrest` behind path-scoped Apache password auth,
   as a UI only; systemd remains the planned scheduler.
+
+## 2026-10-04 — Daily backup schedule selected
+
+- Justin chose daily at 05:00 America/Chicago with no randomized delay.
+- Updated the project and installed systemd timer; `systemd-analyze verify`
+  passed. The timer remains disabled until retention/pruning is approved.
+  Alerting is a follow-up TODO.

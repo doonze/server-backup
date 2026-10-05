@@ -57,8 +57,9 @@
 
 ## Limits
 
-- The timer template is daily at 02:30 with a randomized delay. Retention/prune
-  policy and external failure notifications remain unset.
+- The timer is configured for daily 05:00 America/Chicago with no randomized
+  delay. It remains disabled until retention/prune is approved; alerting is a
+  follow-up TODO.
 - The Déjà Dup/Duplicity set `/nfs/backups/debianr710` was removed after the
   selected restore checks passed. The separate LuckyBackup data remains until
   Justin explicitly requests its removal after review.
