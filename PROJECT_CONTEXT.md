@@ -74,8 +74,11 @@
 
 - **Branch naming:** `main` initially; `feature/*` or `fix/*` if needed.
 - **Commit style:** Conventional commits, small reviewed changes.
-- **Repository:** Local Git initialized; no remote configured. If a remote is
-  added later, push commits and tags for durability.
+- **Repository:** `origin` fetches from
+  `https://github.com/doonze/server-backup.git` and pushes to
+  `git@github.com:doonze/server-backup.git`; `main` tracks `origin/main`.
+  Push authentication uses a private SSH identity configured only in local Git
+  config and stored outside this project. Never commit credential material.
 - **Secrets:** No Restic passwords, DB credentials, raw dumps, or backup payloads
   in Git. Keep the Restic password in an external password manager and a
   root-only runtime credential source.
