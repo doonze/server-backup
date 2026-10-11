@@ -87,3 +87,16 @@
   backup. Script syntax and systemd unit verification passed.
 - Enabled the daily timer. Next run: 2026-10-05 05:00 America/Chicago. Alerting
   remains a TODO; the stable package-inventory path will be checked on that run.
+
+## 2026-10-11 — Autofs mount probe corrected; backup resumed
+
+- The Oct 9–11 scheduled runs failed closed because `findmnt` saw the `/nfs`
+  autofs browse parent after the script only `stat`ed `/nfs/backups`.
+- A read-only `stat` of `/nfs/backups/debianr710-restic/config` triggered the
+  child NFS mount and verified source `192.168.0.116:/volume1/nfs/backups`.
+- Updated `server-backup.sh` to read the repository marker before checking the
+  mount type/source. No autofs maps or mount configuration were changed.
+- `bash -n` passed; `win10` was shut off; the systemd backup service completed
+  successfully at 17:15 CDT. Snapshot `05886861` processed 731,949 files and
+  173.522 GiB; 3.547 GiB was added (1.351 GiB stored), and retention/pruning
+  completed. The snapshot includes the current logical MariaDB dumps.

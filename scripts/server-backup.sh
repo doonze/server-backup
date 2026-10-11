@@ -33,7 +33,9 @@ flock -n 9 || die 'another backup run is already in progress'
 
 check_nas() {
     [[ -d "$NAS_MOUNT" ]] || die "NAS mount path is missing: $NAS_MOUNT"
-    timeout 30 stat -- "$NAS_MOUNT" >/dev/null || die 'NAS autofs mount did not respond'
+    # Access the repository marker to trigger the NFS child mount. With the
+    # autofs browse option, statting only /nfs/backups can leave it as autofs.
+    timeout 30 stat -- "$REPOSITORY/config" >/dev/null 2>&1 || true
     local mount_info fstype source
     mount_info=$(findmnt -n -T "$NAS_MOUNT" -o FSTYPE,SOURCE) || die 'cannot identify NAS mount'
     read -r fstype source <<< "$mount_info"

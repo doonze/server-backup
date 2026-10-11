@@ -20,6 +20,11 @@ RAID, install Restic, and restore selected files and service data.
 - The timer is enabled for daily 05:00 America/Chicago. Each run applies
   7-daily/4-weekly/12-monthly retention and prunes unreferenced data. Alerting
   is a TODO.
+- Latest successful run: snapshot `05886861` (2026-10-11 17:11 CDT),
+  731,949 files / 173.522 GiB processed; 1.351 GiB stored. Retention completed.
+- Fixed the autofs probe: the backup script now reads the approved Restic
+  repository marker to trigger the NFS child mount, then verifies its exact
+  filesystem type and source. No autofs configuration was changed.
 - The old Déjà Dup set `/nfs/backups/debianr710` and the LuckyBackup set
   `/nfs/backups/R710_server_backup` have both been removed after validation.
 - Future runs publish package inventory at one stable latest-only path rather

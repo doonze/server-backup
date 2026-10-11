@@ -1,6 +1,6 @@
 # Project Context: server-backup
 
-**Last Updated:** 2026-10-04
+**Last Updated:** 2026-10-11
 **Context confirmed by Justin:** 2026-10-04
 
 ## Systems
@@ -62,9 +62,9 @@
   alerting remains a TODO.
 - **Orchestration:** `scripts/server-backup.sh` performs mount/VM checks,
   database dumps, latest package inventory, Plex export staging, then Restic.
-  The first production snapshot and selected restore tests passed; the timer is
-  enabled. The new stable package-inventory path will be verified on its first
-  scheduled run.
+  The timer is enabled; the latest successful run saved snapshot `05886861` on
+  2026-10-11. Its mount probe now accesses the approved repository marker to
+  trigger autofs, then verifies the exact NFS filesystem/source.
 - **Storage:** NAS NFS via autofs; do not alter existing autofs behavior.
 - **Databases:** MariaDB 10.11.18; 14 application databases inventoried.
   Schema/data are backed up by default; `resource_monitor` is schema-only.
@@ -90,6 +90,9 @@
   not follow symlinks into them. The NAS is an approved backup destination and
   may be inspected/administered at a specific path when Justin asks.
 - Add mount checks so a missing NAS cannot redirect writes to a local directory.
+  With autofs `browse`, statting `/nfs/backups` alone may still report the
+  autofs parent; stat the approved repository marker read-only, then verify the
+  expected NFS source. Do not alter `/etc/auto.master` or `/etc/auto.nfsdb`.
 - Do not back up a live MariaDB data directory as a substitute for a dump.
 - Minecraft `/running` is intentionally best-effort; retain `/backup` update
   copies as the fallback.
